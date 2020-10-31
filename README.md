@@ -3,7 +3,6 @@
 ## TRICKS
 - activate virtual env: source .venv/bin/activate
 - use raise HTTPException(status_code=404, detail="Item not found") to raise http exceptions
-- use pydantic for partial updates (https://fastapi.tiangolo.com/tutorial/body-updates/)
 
 ## TODO
 - Create the FastApi service to get, add, edit, and delete items in the training set (with integration tests and proper open id documentation)

@@ -14,7 +14,7 @@ class TrainingTextBase(BaseModel):
 
 
 class TrainingText(TrainingTextBase):
-    id: str = Field(..., min_length=24, max_length=24, description=id_description)
+    id: str = Field(..., description=id_description)
     text: str = Field(..., description=text_description)
     is_spam: bool = Field(..., description=is_spam_description)
 
@@ -31,6 +31,5 @@ class TrainingTextInCreate(TrainingTextBase):
 
 
 class TrainingTextInUpdate(TrainingTextBase):
-    id: str = Field(..., min_length=24, max_length=24, description=id_description)
     text: Optional[str] = Field(None, description=text_description)
     is_spam: Optional[bool] = Field(None, description=is_spam_description)

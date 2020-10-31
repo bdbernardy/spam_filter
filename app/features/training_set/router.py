@@ -4,7 +4,7 @@ from motor.motor_asyncio import AsyncIOMotorClient as MongoDbClient
 
 from app.core.mongo_db import get_client
 from .models import TrainingText, TrainingTextInCreate, TrainingTextInUpdate
-from .repository import get_all_texts, create_text
+from .repository import get_all_texts, create_text, update_text
 
 router = APIRouter()
 
@@ -57,8 +57,8 @@ async def delete(
 
 @router.put("/{id}", response_model=TrainingText)
 async def update(
-    Text: TrainingTextInUpdate,
+    text: TrainingTextInUpdate,
     id: str = Path(..., description="The id of the text to updated."),
     client: MongoDbClient = Depends(get_client)
 ):
-    raise Exception("Not implemented")
+    return await update_text(client, id, text)
