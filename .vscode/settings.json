@@ -1,6 +1,7 @@
 {
   "editor.tabSize": 4,
   "editor.formatOnSave": true,
+  "python.testing.pytestEnabled": true,
   "python.analysis.typeCheckingMode": "basic",
   "python.linting.pylintEnabled": true,
   "python.formatting.autopep8Args": [

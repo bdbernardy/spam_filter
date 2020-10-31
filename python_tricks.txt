@@ -1,0 +1,15 @@
+
+# required Query parameter with validation
+@app.get("/items/")
+async def read_items(q: str = Query(..., min_length=3)):
+    results = {"items": [{"item_id": "Foo"}, {"item_id": "Bar"}]}
+    if q:
+        results.update({"q": q})
+    return results
+
+# use pydantic Field to add validation to models
+
+# use raise HTTPException(status_code=404, detail="Item not found") to raise http exceptions
+
+# use pydantic for partial updates
+https://fastapi.tiangolo.com/tutorial/body-updates/
