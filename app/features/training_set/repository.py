@@ -1,5 +1,5 @@
 import sys
-from fastapi import HTTPException
+from fastapi import HTTPException, status
 from typing import Optional, List
 from bson.objectid import ObjectId
 from motor.motor_asyncio import AsyncIOMotorClient as MongoDbClient
@@ -14,6 +14,17 @@ async def get_all_texts(client: MongoDbClient, skip: Optional[int], limit: Optio
     texts = await cursor.to_list(length=limit) if limit != None else await cursor.to_list(sys.maxsize)
 
     return [TrainingText(**text) for text in texts]
+
+
+async def get_text(client: MongoDbClient, id: str) -> TrainingText:
+    db = client.spamFilter
+    text = await db.trainingSet.find_one({"_id": ObjectId(id)})
+    if text == None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"The training text with id '{id}' does not exist."
+        )
+    return TrainingText(**text)
 
 
 async def create_text(client: MongoDbClient, text: TrainingTextInCreate) -> TrainingText:
@@ -32,4 +43,15 @@ async def update_text(client: MongoDbClient, id: str, text: TrainingTextInUpdate
         updated_text = await db.trainingSet.find_one({"_id": ObjectId(id)})
         return TrainingText(**updated_text)
     else:
-        raise HTTPException(status_code=400, detail="The training text does not have any changes")
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="The training text does not have any changes")
+
+
+async def delete_text(client: MongoDbClient, id: str):
+    db = client.spamFilter
+    result = await db.trainingSet.delete_one({"_id": ObjectId(id)})
+    if result.deleted_count != 1:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"The training text with id '{id}' does not exist."
+        )
