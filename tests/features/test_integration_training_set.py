@@ -3,16 +3,17 @@ from httpx import AsyncClient
 from fastapi import status
 
 from app.core.api_server import app
-from app.core.mongo_db import get_db
-from tests.fixture import get_test_db, clear_database
+from app.core.mongo_db import get_mongodb_client
+from tests.fixture import get_test_mongodb_client, clear_database
 
-app.dependency_overrides[get_db] = get_test_db
+app.dependency_overrides[get_mongodb_client] = get_test_mongodb_client
 
 
 @pytest.mark.asyncio
 async def test_get_all_texts_should_return_all_texts():
     # Arrange
-    db = await get_test_db()
+    client = await get_test_mongodb_client()
+    db = client.get_db()
     number_of_items = 5
     await clear_database(db)
     training_texts = [{"text": f"text_{i}", "isSpam": i % 2 == 0} for i in range(1, number_of_items + 1)]
@@ -20,7 +21,7 @@ async def test_get_all_texts_should_return_all_texts():
 
     # Act
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.get("/api/training-set/")
+        response = await ac.get("/api/training-texts/")
 
     # Assert
     assert response.status_code == status.HTTP_200_OK
@@ -34,7 +35,8 @@ async def test_get_all_texts_should_return_all_texts():
 @pytest.mark.asyncio
 async def test_get_all_texts_should_return_subset_when_skip_and_limit_supplied():
     # Arrange
-    db = await get_test_db()
+    client = await get_test_mongodb_client()
+    db = client.get_db()
     number_of_items = 5
     skip = 2
     limit = 2
@@ -44,7 +46,7 @@ async def test_get_all_texts_should_return_subset_when_skip_and_limit_supplied()
 
     # Act
     async with AsyncClient(app=app, base_url="http://test") as ac:
-        response = await ac.get(f"/api/training-set/?skip={skip}&limit={limit}")
+        response = await ac.get(f"/api/training-texts/?skip={skip}&limit={limit}")
 
     # Assert
     assert response.status_code == status.HTTP_200_OK

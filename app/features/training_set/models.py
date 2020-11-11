@@ -19,7 +19,7 @@ class TrainingText(TrainingTextBase):
     is_spam: bool = Field(..., description=is_spam_description)
 
     def __init__(self, _id: ObjectId = None, **fields) -> None:
-        if (_id != None):
+        if (_id):
             fields["id"] = str(_id)
 
         super().__init__(**fields)

@@ -2,22 +2,22 @@ import sys
 from fastapi import HTTPException, status
 from typing import Optional, List
 from bson.objectid import ObjectId
-from motor.motor_asyncio import AsyncIOMotorDatabase
-
+from app.core.mongo_db import MongoDbClient
 
 from .models import TrainingText, TrainingTextInUpdate, TrainingTextInCreate
 
 
-async def get_all_texts(db: AsyncIOMotorDatabase, skip: Optional[int], limit: Optional[int]) -> List[TrainingText]:
-    cursor = db.trainingSet.find().skip(skip) if skip != None else db.trainingSet.find()
-    texts = await cursor.to_list(length=limit) if limit != None else await cursor.to_list(sys.maxsize)
+async def get_all_texts(client: MongoDbClient, skip: Optional[int], limit: Optional[int]) -> List[TrainingText]:
+    db = client.get_db()
+    cursor = db.trainingSet.find().skip(skip) if skip else db.trainingSet.find()
+    texts = await cursor.to_list(length=limit) if limit else await cursor.to_list(sys.maxsize)
 
     return [TrainingText(**text) for text in texts]
 
 
-async def get_text(db: AsyncIOMotorDatabase, id: str) -> TrainingText:
-    text = await db.trainingSet.find_one({"_id": ObjectId(id)})
-    if text == None:
+async def get_text(client: MongoDbClient, id: str) -> TrainingText:
+    text = await client.get_db().trainingSet.find_one({"_id": ObjectId(id)})
+    if not text:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"The training text with id '{id}' does not exist."
@@ -25,26 +25,26 @@ async def get_text(db: AsyncIOMotorDatabase, id: str) -> TrainingText:
     return TrainingText(**text)
 
 
-async def create_text(db: AsyncIOMotorDatabase, text: TrainingTextInCreate) -> TrainingText:
-    result = await db.trainingSet.insert_one(text.dict(by_alias=True))
-    create_text = await db.trainingSet.find_one({"_id": result.inserted_id})
+async def create_text(client: MongoDbClient, text: TrainingTextInCreate) -> TrainingText:
+    result = await client.get_db().trainingSet.insert_one(text.dict(by_alias=True))
+    create_text = await client.get_db().trainingSet.find_one({"_id": result.inserted_id})
     return TrainingText(**create_text)
 
 
-async def update_text(db: AsyncIOMotorDatabase, id: str, text: TrainingTextInUpdate) -> TrainingText:
+async def update_text(client: MongoDbClient, id: str, text: TrainingTextInUpdate) -> TrainingText:
     changes = text.dict(exclude_unset=True, by_alias=True)
 
     if len(changes) > 0:
-        await db.trainingSet.update_one({"_id": ObjectId(id)}, {"$set": changes})
-        updated_text = await db.trainingSet.find_one({"_id": ObjectId(id)})
+        await client.get_db().trainingSet.update_one({"_id": ObjectId(id)}, {"$set": changes})
+        updated_text = await client.get_db().trainingSet.find_one({"_id": ObjectId(id)})
         return TrainingText(**updated_text)
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="The training text does not have any changes")
 
 
-async def delete_text(db: AsyncIOMotorDatabase, id: str):
-    result = await db.trainingSet.delete_one({"_id": ObjectId(id)})
+async def delete_text(client: MongoDbClient, id: str):
+    result = await client.get_db().delete_one({"_id": ObjectId(id)})
     if result.deleted_count != 1:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

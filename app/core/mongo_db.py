@@ -2,10 +2,15 @@ from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
 from app.core.settings import MONGO_CONNECTION_STRING
 
 
-async def get_db() -> AsyncIOMotorDatabase:
-    client = await get_client()
-    return client.spamFilter
+class MongoDbClient:
+    client: AsyncIOMotorClient
+
+    def __init__(self, connection_string):
+        self.client = AsyncIOMotorClient(connection_string)
+
+    def get_db(self) -> AsyncIOMotorDatabase:
+        return self.client.spamFilter
 
 
-async def get_client() -> AsyncIOMotorClient:
-    return AsyncIOMotorClient(MONGO_CONNECTION_STRING)
+async def get_mongodb_client():
+    return MongoDbClient(MONGO_CONNECTION_STRING)

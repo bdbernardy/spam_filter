@@ -12,6 +12,6 @@ async def welcome():
 # Routers
 app.include_router(
     training_set_router,
-    prefix="/api/training-set",
+    prefix="/api/training-texts",
     tags=["Training Set"]
 )
